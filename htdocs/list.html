@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Yahoo Weather Video List</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.9/jquery.csv.min.js"></script>
+    <style>
+        body {
+            font-size: 12px;
+        }
+        #list_link li{
+            display: inline-block;
+            float:left;
+            width:200px;
+        }
+        #list_link:after {
+            content: "";
+            clear: both;
+            height: 0;
+            display: block;
+            visibility: hidden;
+        }
+        #video_list {
+            border: solid 1px #000;
+            border-collapse: collapse;
+            margin:10px auto;
+        }
+        #video_list caption {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Yahoo!天気動画出演リスト</h1>
+<ul>
+    <li>全リストを作ろうと思いましたが、多分一部バグってます。</li>
+    <li>---は名前の自動取得失敗です</li>
+    <li>名前は基本初出演順</li>
+</ul>
+
+<div id="app">
+<ul id="list_link">
+    <li v-for="(videos, key) in list"><a v-bind:href="'#' + key">{{key}}（{{count[key]}}）</a></li>
+</ul>
+<table v-for="(videos, key) in list" border id="video_list">
+    <caption><a v-bind:name="key">{{key}}（{{count[key]}}）</a></caption>
+    <tr v-for="video in videos">
+        <td><a v-bind:href="video[3]">{{video[1]}}</a>（{{video[2]}}）</td>
+    </tr>
+</table>
+
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            list: {},
+            count: {}
+        },
+        created: function () {
+            var self = this;
+            $.ajaxSetup({async: false});
+            $.get("video_list.csv", function(data) {
+                var csv = $.csv.toArrays(data);
+                for(var i in csv) {
+                    var name = csv[i][4]
+                    if (self.list.hasOwnProperty(name)) {
+                        self.list[name].push(csv[i]);
+                        self.count[name]++;
+                    } else {
+                        self.list[name] = [csv[i]]
+                        self.count[name] = 1;
+                    }
+                }
+                console.log(self.list);
+            });
+
+        },
+        watch: {
+            list: function(val) {
+                console.log(val);
+            }
+        }
+    });
+</script>
+</body>
+</html>
